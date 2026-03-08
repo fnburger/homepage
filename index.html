@@ -198,7 +198,7 @@
 
         /* Sections & Reveal Animation */
         section {
-            padding: 120px 0;
+            padding: 80px 0;
             border-top: 1px solid var(--border);
         }
 
@@ -274,35 +274,27 @@
             background: var(--surface);
             border-radius: 16px;
             overflow: hidden;
-            transition: all 0.4s ease;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            transform-style: preserve-3d;
+            will-change: transform;
         }
 
         .project-card:hover {
-            transform: translateY(-8px);
             border-color: rgba(0, 224, 255, 0.3);
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
 
-        /* Pure CSS Placeholder for Missing Thumbnails */
         .project-thumb {
             width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            height: 220px; /* Locks the height */
+            flex-shrink: 0; /* Prevents the text from squishing the image */
+            object-fit: cover; /* Zooms/crops the image to fill the space perfectly */
+            display: block; /* Removes weird invisible spacing below images */
             border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .project-thumb::after {
-            content: '< />';
-            font-family: 'Space Mono', monospace;
-            color: #333;
-            font-size: 2.5rem;
-            font-weight: 700;
+            background: #111; /* Fallback color while the image loads */
         }
 
         .project-content {
@@ -485,10 +477,10 @@
 
             <div class="projects-grid">
                 <div class="project-card">
-                    <div class="project-thumb"></div>
+                    <img src="images/escape.png" alt="VR Escape Room screenshot" class="project-thumb">
                     <div class="project-content">
                         <h3>VR Escape Room</h3>
-                        <p>Two-player networked VR puzzle experience with motion controllers. Built in Unreal Engine 5 with Blueprints + C++.</p>
+                        <p>Two-player networked VR puzzle experience with motion controllers. Built in Unreal Engine 5 with Blueprints.</p>
                         <div class="project-tags">
                             <span class="tag">UE5</span>
                             <span class="tag">VR</span>
@@ -499,7 +491,7 @@
                 </div>
 
                 <div class="project-card">
-                    <div class="project-thumb"></div>
+                    <img src="images/melt.png" alt="Meltdown Mayhem game screenshot" class="project-thumb">
                     <div class="project-content">
                         <h3>Meltdown Mayhem</h3>
                         <p>Splitscreen 2-player racing platformer with power-ups and chaotic physics. Developed in Unreal Engine 5.</p>
@@ -513,7 +505,7 @@
                 </div>
 
                 <div class="project-card">
-                    <div class="project-thumb"></div>
+                    <img src="images/shower.jpeg" alt="Dry Shower poster" class="project-thumb">
                     <div class="project-content">
                         <h3>Dry Shower</h3>
                         <p>Interactive exhibition piece demonstrating water-saving behavior through real-time feedback and visuals.</p>
@@ -527,7 +519,7 @@
                 </div>
 
                 <div class="project-card">
-                    <div class="project-thumb"></div>
+                    <img src="images/wetter.jpeg" alt="Wetterbox" class="project-thumb">
                     <div class="project-content">
                         <h3>Wetterbox</h3>
                         <p>Environmental monitoring station displaying air quality, temp, humidity and pressure on vintage VFD tubes.</p>
@@ -541,7 +533,7 @@
                 </div>
 
                 <div class="project-card">
-                    <div class="project-thumb"></div>
+                    <img src="images/smile.jpeg" alt="Smile Detector" class="project-thumb">
                     <div class="project-content">
                         <h3>Smile Detector</h3>
                         <p>Real-time face & smile detection using webcam, controlling LEDs via Arduino and ROS2.</p>
@@ -555,7 +547,7 @@
                 </div>
 
                 <div class="project-card">
-                    <div class="project-thumb"></div>
+                    <img src="images/sorting.png" alt="GPU Sorting paper" class="project-thumb">
                     <div class="project-content">
                         <h3>GPU Sorting Comparison</h3>
                         <p>Research paper comparing GPU sorting algorithms (Radix, Bitonic, QuickSort variants) with performance analysis.</p>
@@ -653,6 +645,42 @@
         
         // Trigger initial reveal on load
         setTimeout(() => document.querySelector('.hero').classList.add('active'), 100);
+
+        // --- 3D Interactive Card Tilt ---
+        const projectCards = document.querySelectorAll('.project-card');
+
+        projectCards.forEach(card => {
+            // Only apply the effect on devices with a mouse (prevents mobile touch bugs)
+            if (window.matchMedia("(hover: hover)").matches) {
+                
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    
+                    // Find the mouse's exact position relative to the card
+                    const x = e.clientX - rect.left; 
+                    const y = e.clientY - rect.top;
+                    
+                    // Find the exact center of the card
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    // Calculate rotation (max 8 degrees). 
+                    // Negative/positive mapping ensures it tilts *toward* the mouse.
+                    const rotateX = ((y - centerY) / centerY) * -8; 
+                    const rotateY = ((x - centerX) / centerX) * 8;
+                    
+                    // Apply the 3D transform instantly without CSS transition lag
+                    card.style.transition = 'none';
+                    card.style.transform = `perspective(1000px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    // Smoothly snap back to flat when the mouse leaves
+                    card.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    card.style.transform = `perspective(1000px) scale(1) rotateX(0deg) rotateY(0deg)`;
+                });
+            }
+        });
     </script>
 </body>
 </html>
