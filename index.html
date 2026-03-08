@@ -173,15 +173,52 @@
         }
 
         .btn-primary {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 4px 14px rgba(0, 224, 255, 0.2);
+            /* 1. Translucent Tint & Blur */
+            background: linear-gradient(180deg, rgba(0, 224, 255, 0.15) 0%, rgba(0, 224, 255, 0.05) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            /* 2. Crisp Text & Structural Styling */
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            
+            /* 3. The Glass Specular Highlights */
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.4); /* Sharp top reflection */
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1), /* Inner top glow */
+                0 8px 24px rgba(0, 224, 255, 0.15); /* Soft ambient cast shadow */
+        }
+
+        /* The Liquid Light Beam */
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; 
+            left: -100%;
+            width: 50%; 
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transform: skewX(-25deg);
+            transition: left 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .btn-primary:hover {
-            background: var(--text);
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+            /* Brighten the glass and increase the lift/glow */
+            background: linear-gradient(180deg, rgba(0, 224, 255, 0.25) 0%, rgba(0, 224, 255, 0.1) 100%);
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2), 
+                0 12px 32px rgba(0, 224, 255, 0.3);
+            border-color: rgba(0, 224, 255, 0.5);
+            border-top-color: rgba(255, 255, 255, 0.6);
             transform: translateY(-2px);
+        }
+
+        .btn-primary:hover::before {
+            /* Fire the light beam across the glass */
+            left: 200%; 
         }
 
         .btn-outline {
@@ -241,18 +278,16 @@
             aspect-ratio: 4 / 5;
             cursor: pointer;
             background: var(--surface);
+            /* Add transitions for the new glow and a slight lift */
+            transition: box-shadow 0.4s ease, transform 0.4s ease;
+            border: 1px solid var(--border);
         }
 
-        .photo-item::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        .photo-item:hover {
+            /* Elegant mixed glow: dark physical shadow + soft cyan backlight */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 224, 255, 0.35);
+            transform: translateY(-4px); /* Gentle lift off the page */
         }
-
-        .photo-item:hover::after { opacity: 1; }
 
         .photo-item img {
             width: 100%;
@@ -261,7 +296,10 @@
             transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        .photo-item:hover img { transform: scale(1.05); }
+        .photo-item:hover img { 
+            transform: scale(1.05); /* Keeps your zoom effect! */
+        }
+        
 
         /* Projects */
         .projects-grid {
@@ -270,21 +308,52 @@
             gap: 32px;
         }
 
+        @property --border-angle {
+            syntax: "<angle>";
+            inherits: true;
+            initial-value: 0deg;
+        }
+
+        @keyframes border-spin {
+            to { --border-angle: 360deg; }
+        }
+
         .project-card {
-            background: var(--surface);
             border-radius: 16px;
             overflow: hidden;
-            transition: border-color 0.4s ease, box-shadow 0.4s ease;
-            border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            
+            /* 3D setup */
             transform-style: preserve-3d;
             will-change: transform;
+            transition: box-shadow 0.4s ease;
+            
+            /* The Magic Border Setup */
+            border: 1px solid transparent;
+            background: 
+                linear-gradient(var(--surface), var(--surface)) padding-box,
+                var(--border) border-box; 
         }
 
         .project-card:hover {
-            border-color: rgba(0, 224, 255, 0.3);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            /* Add the physical shadow + a subtle cyan glow around the card */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px rgba(0, 224, 255, 0.4);
+            
+            /* The Animated Border Gradient */
+            background: 
+                linear-gradient(var(--surface), var(--surface)) padding-box,
+                conic-gradient(
+                    from var(--border-angle), 
+                    var(--border) 10%, 
+                    var(--accent) 45%, 
+                    #a200ff 50%, /* Cool purple peak in the middle of the cyan */
+                    var(--accent) 55%, 
+                    var(--border) 90%
+                ) border-box;
+            
+            /* Spin the gradient */
+            animation: border-spin 5s linear infinite;
         }
 
         .project-thumb {
