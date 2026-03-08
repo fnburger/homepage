@@ -121,10 +121,81 @@
         nav a:hover { color: var(--accent); }
 
         /* Hero */
+        /* --- Hero Video Background --- */
         .hero {
+            /* Existing hero styles but ensuring we have relative positioning */
             padding: 120px 0 160px;
-            text-align: left;
             position: relative;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            min-height: 85vh; /* Gives the video room to breathe */
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2; /* Keeps text safely above the video */
+            width: 100%;
+        }
+
+        .hero-video-wrapper {
+            position: absolute;
+            top: 50%; 
+            right: -2%; /* Let it bleed just slightly off the right edge */
+            transform: translateY(-50%);
+            
+            /* The Ultrawide Fix */
+            width: 90%; /* Stretch it much further across the screen */
+            max-width: 1200px; 
+            aspect-ratio: 21 / 9; /* Forces the container to perfectly match your video file */
+            
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 24px;
+            
+            /* Adjusted Mask: Keeps the left 15% fully invisible so text stays perfectly readable */
+            -webkit-mask-image: 
+                linear-gradient(to right, transparent 0%, transparent 15%, black 45%, black 95%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+            -webkit-mask-composite: source-in;
+            
+            mask-image: 
+                linear-gradient(to right, transparent 0%, transparent 5%, black 45%, black 99%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+            mask-composite: intersect;
+        }
+
+        .hero-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* With the aspect-ratio set, this will no longer crop the sides! */
+            opacity: 0.8; 
+        }
+
+        /* Mobile Adjustment for the Video */
+       @media (max-width: 768px) {
+            .hero-video-wrapper {
+                top: 0;
+                right: 0;
+                transform: none; 
+                width: 100%; 
+                height: 100%; 
+                aspect-ratio: auto; /* Removes the 21:9 lock on mobile */
+                max-width: none; 
+                border-radius: 0; 
+                
+                -webkit-mask-image: 
+                    linear-gradient(to bottom, transparent 5%, black 50%, black 95%, transparent 100%),
+                    linear-gradient(to right, transparent 5%, black 15%, black 85%, transparent 95%);
+                -webkit-mask-composite: source-in;
+                
+                mask-image: 
+                    linear-gradient(to bottom, transparent 5%, black 50%, black 95%, transparent 100%),
+                    linear-gradient(to right, transparent 5%, black 15%, black 85%, transparent 95%);
+                mask-composite: intersect;
+                
+                opacity: 0.4;
+            }
         }
 
         .hero .eyebrow {
@@ -509,14 +580,23 @@
 
     <div class="container">
         <section class="hero reveal" id="about">
-            <span class="eyebrow">Hello there.</span>
-            <h1>Crafting mixed realities.<br>Documenting the real.</h1>
-            <p>Computer Science MSc @ TU Wien. I build XR experiences in Unreal Engine, tinker with hardware, and capture light & moments through photography.</p>
-            
-            <div class="cta-group">
-                <a href="#photography" class="btn btn-primary">View Photography</a>
-                <a href="#projects" class="btn btn-outline">Explore Projects</a>
-                <a href="mailto:cinematic.programmer@gmail.com" class="btn btn-outline">Get in Touch</a>
+            <!-- 
+            <div class="hero-video-wrapper">
+                <video autoplay loop muted playsinline class="hero-video">
+                    <source src="video/showreel.mp4" type="video/mp4">
+                </video>
+            </div>
+            -->
+            <div class="hero-content">
+                <span class="eyebrow">Hello there.</span>
+                <h1>Crafting mixed realities.<br>Documenting the real.</h1>
+                <p>Computer Science MSc @ TU Wien. I build XR experiences in Unreal Engine, tinker with hardware, and capture light & moments through photography.</p>
+                
+                <div class="cta-group">
+                    <a href="#photography" class="btn btn-primary">View Photography</a>
+                    <a href="#projects" class="btn btn-outline">Explore Projects</a>
+                    <a href="mailto:cinematic.programmer@gmail.com" class="btn btn-outline">Get in Touch</a>
+                </div>
             </div>
         </section>
 
@@ -542,7 +622,7 @@
 
         <section id="projects" class="reveal">
             <h2>Projects</h2>
-            <p class="intro-text">Selected work blending code, hardware, and immersive experiences.</p>
+            <p class="intro-text">Recent work blending code, hardware, and immersive experiences.</p>
 
             <div class="projects-grid">
                 <div class="project-card">
