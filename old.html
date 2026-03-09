@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cinemmer – Computer Science MSc student at TU Wien | Unreal Engine XR developer, hardware enthusiast & photographer based in Vienna.">
+    <title>Cinemmer | XR Dev & Photography</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-hover: #1c1c1c;
+            --text: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --accent: #00e0ff;
+            --accent-dark: #00b0cc;
+            --accent-glow: rgba(0, 224, 255, 0.15);
+            --border: #222;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Subtle background glow for depth */
+        .bg-glow {
+            position: absolute;
+            top: -20%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: pulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+        }
+
+        header {
+            padding: 24px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 10, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        header.scrolled {
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .logo span { color: var(--accent); }
+        .logo:hover { color: var(--accent); }
+
+        nav ul {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.25s ease;
+        }
+
+        nav a:hover { color: var(--accent); }
+
+        /* Hero */
+        /* --- Hero Video Background --- */
+        .hero {
+            /* Existing hero styles but ensuring we have relative positioning */
+            padding: 120px 0 160px;
+            position: relative;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            min-height: 85vh; /* Gives the video room to breathe */
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2; /* Keeps text safely above the video */
+            width: 100%;
+        }
+
+        .hero-video-wrapper {
+            position: absolute;
+            top: 50%; 
+            right: -2%; /* Let it bleed just slightly off the right edge */
+            transform: translateY(-50%);
+            
+            /* The Ultrawide Fix */
+            width: 90%; /* Stretch it much further across the screen */
+            max-width: 1200px; 
+            aspect-ratio: 21 / 9; /* Forces the container to perfectly match your video file */
+            
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 24px;
+            
+            /* Adjusted Mask: Keeps the left 15% fully invisible so text stays perfectly readable */
+            -webkit-mask-image: 
+                linear-gradient(to right, transparent 0%, transparent 15%, black 45%, black 95%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+            -webkit-mask-composite: source-in;
+            
+            mask-image: 
+                linear-gradient(to right, transparent 0%, transparent 5%, black 45%, black 99%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+            mask-composite: intersect;
+        }
+
+        .hero-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* With the aspect-ratio set, this will no longer crop the sides! */
+            opacity: 0.8; 
+        }
+
+        /* Mobile Adjustment for the Video */
+       @media (max-width: 768px) {
+            .hero-video-wrapper {
+                top: 0;
+                right: 0;
+                transform: none; 
+                width: 100%; 
+                height: 100%; 
+                aspect-ratio: auto; /* Removes the 21:9 lock on mobile */
+                max-width: none; 
+                border-radius: 0; 
+                
+                -webkit-mask-image: 
+                    linear-gradient(to bottom, transparent 5%, black 50%, black 95%, transparent 100%),
+                    linear-gradient(to right, transparent 5%, black 15%, black 85%, transparent 95%);
+                -webkit-mask-composite: source-in;
+                
+                mask-image: 
+                    linear-gradient(to bottom, transparent 5%, black 50%, black 95%, transparent 100%),
+                    linear-gradient(to right, transparent 5%, black 15%, black 85%, transparent 95%);
+                mask-composite: intersect;
+                
+                opacity: 0.4;
+            }
+        }
+
+        .hero .eyebrow {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent);
+            font-size: 1.1rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+            display: inline-block;
+            background: rgba(0,224,255,0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 6vw, 4.8rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 640px;
+            margin-bottom: 48px;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            /* 1. Translucent Tint & Blur */
+            background: linear-gradient(180deg, rgba(0, 224, 255, 0.15) 0%, rgba(0, 224, 255, 0.05) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            
+            /* 2. Crisp Text & Structural Styling */
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            
+            /* 3. The Glass Specular Highlights */
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.4); /* Sharp top reflection */
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1), /* Inner top glow */
+                0 8px 24px rgba(0, 224, 255, 0.15); /* Soft ambient cast shadow */
+        }
+
+        /* The Liquid Light Beam */
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; 
+            left: -100%;
+            width: 50%; 
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transform: skewX(-25deg);
+            transition: left 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .btn-primary:hover {
+            /* Brighten the glass and increase the lift/glow */
+            background: linear-gradient(180deg, rgba(0, 224, 255, 0.25) 0%, rgba(0, 224, 255, 0.1) 100%);
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.2), 
+                0 12px 32px rgba(0, 224, 255, 0.3);
+            border-color: rgba(0, 224, 255, 0.5);
+            border-top-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:hover::before {
+            /* Fire the light beam across the glass */
+            left: 200%; 
+        }
+
+        .btn-outline {
+            border: 1px solid var(--border);
+            color: var(--text);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* Sections & Reveal Animation */
+        section {
+            padding: 80px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .intro-text {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 720px;
+            margin-bottom: 48px;
+        }
+
+        /* Photo Grid */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .photo-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            aspect-ratio: 4 / 5;
+            cursor: pointer;
+            background: var(--surface);
+            /* Add transitions for the new glow and a slight lift */
+            transition: box-shadow 0.4s ease, transform 0.4s ease;
+            border: 1px solid var(--border);
+        }
+
+        .photo-item:hover {
+            /* Elegant mixed glow: dark physical shadow + soft cyan backlight */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 224, 255, 0.35);
+            transform: translateY(-4px); /* Gentle lift off the page */
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .photo-item:hover img { 
+            transform: scale(1.05); /* Keeps your zoom effect! */
+        }
+        
+
+        /* Projects */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 32px;
+        }
+
+        @property --border-angle {
+            syntax: "<angle>";
+            inherits: true;
+            initial-value: 0deg;
+        }
+
+        @keyframes border-spin {
+            to { --border-angle: 360deg; }
+        }
+
+        .project-card {
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            
+            /* 3D setup */
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: box-shadow 0.4s ease;
+            
+            /* The Magic Border Setup */
+            border: 1px solid transparent;
+            background: 
+                linear-gradient(var(--surface), var(--surface)) padding-box,
+                var(--border) border-box; 
+        }
+
+        .project-card:hover {
+            /* Add the physical shadow + a subtle cyan glow around the card */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px rgba(0, 224, 255, 0.4);
+            
+            /* The Animated Border Gradient */
+            background: 
+                linear-gradient(var(--surface), var(--surface)) padding-box,
+                conic-gradient(
+                    from var(--border-angle), 
+                    var(--border) 10%, 
+                    var(--accent) 45%, 
+                    #a200ff 50%, /* Cool purple peak in the middle of the cyan */
+                    var(--accent) 55%, 
+                    var(--border) 90%
+                ) border-box;
+            
+            /* Spin the gradient */
+            animation: border-spin 5s linear infinite;
+        }
+
+        .project-thumb {
+            width: 100%;
+            height: 220px; /* Locks the height */
+            flex-shrink: 0; /* Prevents the text from squishing the image */
+            object-fit: cover; /* Zooms/crops the image to fill the space perfectly */
+            display: block; /* Removes weird invisible spacing below images */
+            border-bottom: 1px solid var(--border);
+            background: #111; /* Fallback color while the image loads */
+        }
+
+        .project-content {
+            padding: 28px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+        }
+
+        .project-card p {
+            color: var(--text-muted);
+            font-size: 0.98rem;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(0,224,255,0.08);
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .project-link {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s ease;
+            margin-top: auto;
+        }
+
+        .project-link:hover { color: var(--accent); }
+
+        /* Lightbox */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.98);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #lightbox.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        #lightbox img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 4px;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #lightbox.active img { transform: scale(1); }
+
+        .close {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            font-weight: 300;
+        }
+
+        .close:hover { opacity: 1; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 60px 0;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .social-links {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .social-links a {
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .social-links a:hover { color: var(--accent); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero { padding: 80px 0 100px; text-align: center; }
+            .bg-glow { left: 0; width: 100%; height: 100vw; }
+            .hero p { margin: 0 auto 32px; }
+            .cta-group { justify-content: center; }
+            nav { flex-direction: column; gap: 20px; }
+            h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+
+    <header id="header">
+        <div class="container">
+            <nav>
+                <a href="#" class="logo">&lt;Cinemmer<span>/</span>&gt;</a>
+                <ul>
+                    <li><a href="#photography">Photography</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="hero reveal" id="about">
+            <!-- 
+            <div class="hero-video-wrapper">
+                <video autoplay loop muted playsinline class="hero-video">
+                    <source src="video/showreel.mp4" type="video/mp4">
+                </video>
+            </div>
+            -->
+            <div class="hero-content">
+                <span class="eyebrow">Hello there.</span>
+                <h1>Crafting mixed realities.<br>Documenting the real.</h1>
+                <p>Computer Science MSc @ TU Wien. I build XR experiences in Unreal Engine, tinker with hardware, and capture light & moments through photography.</p>
+                
+                <div class="cta-group">
+                    <a href="#photography" class="btn btn-primary">View Photography</a>
+                    <a href="#projects" class="btn btn-outline">Explore Projects</a>
+                    <a href="mailto:contact@cinemmer.com" class="btn btn-outline">Get in Touch</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="photography" class="reveal">
+            <h2>Photography</h2>
+            <p class="intro-text">Recent captures from Vienna streets, Austrian landscapes, urban textures and spontaneous travels.</p>
+            
+            <div class="photo-grid">
+                <div class="photo-item"><img src="images/green.jpg" alt="Urban green" loading="lazy" onclick="openLightbox(this.src)"></div>
+                <div class="photo-item"><img src="images/ubahn.jpg" alt="Subway moment" loading="lazy" onclick="openLightbox(this.src)"></div>
+                <div class="photo-item"><img src="images/sunrise.jpg" alt="Morning light" loading="lazy" onclick="openLightbox(this.src)"></div>
+                <div class="photo-item"><img src="images/urban.jpg" alt="Street scene" loading="lazy" onclick="openLightbox(this.src)"></div>
+                <div class="photo-item"><img src="images/budapest.jpg" alt="Budapest view" loading="lazy" onclick="openLightbox(this.src)"></div>
+                <div class="photo-item"><img src="images/donau.jpg" alt="Danube shore" loading="lazy" onclick="openLightbox(this.src)"></div>
+            </div>
+
+            <p style="text-align:center; margin-top:48px;">
+                <a href="https://www.instagram.com/cinemmer/" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:500;">
+                    More on Instagram →
+                </a>
+            </p>
+        </section>
+
+        <section id="projects" class="reveal">
+            <h2>Projects</h2>
+            <p class="intro-text">Recent work blending code, hardware, and immersive experiences.</p>
+
+            <div class="projects-grid">
+                <div class="project-card">
+                    <img src="images/escape.png" alt="VR Escape Room screenshot" class="project-thumb">
+                    <div class="project-content">
+                        <h3>VR Escape Room</h3>
+                        <p>Two-player networked VR puzzle experience with motion controllers. Built in Unreal Engine 5 with Blueprints.</p>
+                        <div class="project-tags">
+                            <span class="tag">UE5</span>
+                            <span class="tag">VR</span>
+                            <span class="tag">Networking</span>
+                        </div>
+                        <a href="#" target="_blank" class="project-link">View on GitHub →</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <img src="images/melt.png" alt="Meltdown Mayhem game screenshot" class="project-thumb">
+                    <div class="project-content">
+                        <h3>Meltdown Mayhem</h3>
+                        <p>Splitscreen 2-player racing platformer with power-ups and chaotic physics. Developed in Unreal Engine 5.</p>
+                        <div class="project-tags">
+                            <span class="tag">UE5</span>
+                            <span class="tag">Game</span>
+                            <span class="tag">Multiplayer</span>
+                        </div>
+                        <a href="https://github.com/fnburger/MeltdownMayhem2" target="_blank" class="project-link">View on GitHub →</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <img src="images/shower.jpeg" alt="Dry Shower poster" class="project-thumb">
+                    <div class="project-content">
+                        <h3>Dry Shower</h3>
+                        <p>Interactive exhibition piece demonstrating water-saving behavior through real-time feedback and visuals.</p>
+                        <div class="project-tags">
+                            <span class="tag">C++</span>
+                            <span class="tag">ESP32</span>
+                            <span class="tag">Interactive Art</span>
+                        </div>
+                        <a href="https://github.com/fnburger/dry_shower" target="_blank" class="project-link">View on GitHub →</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <img src="images/wetter.jpeg" alt="Wetterbox" class="project-thumb">
+                    <div class="project-content">
+                        <h3>Wetterbox</h3>
+                        <p>Environmental monitoring station displaying air quality, temp, humidity and pressure on vintage VFD tubes.</p>
+                        <div class="project-tags">
+                            <span class="tag">C++</span>
+                            <span class="tag">Arduino</span>
+                            <span class="tag">IoT</span>
+                        </div>
+                        <a href="#" target="_blank" class="project-link">View on GitHub →</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <img src="images/smile.jpeg" alt="Smile Detector" class="project-thumb">
+                    <div class="project-content">
+                        <h3>Smile Detector</h3>
+                        <p>Real-time face & smile detection using webcam, controlling LEDs via Arduino and ROS2.</p>
+                        <div class="project-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">ROS2</span>
+                            <span class="tag">Arduino</span>
+                        </div>
+                        <a href="https://github.com/fnburger/ros2_arduino" target="_blank" class="project-link">View on GitHub →</a>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <img src="images/sorting.png" alt="GPU Sorting paper" class="project-thumb">
+                    <div class="project-content">
+                        <h3>GPU Sorting Comparison</h3>
+                        <p>Research paper comparing GPU sorting algorithms (Radix, Bitonic, QuickSort variants) with performance analysis.</p>
+                        <div class="project-tags">
+                            <span class="tag">LaTeX</span>
+                            <span class="tag">Research</span>
+                            <span class="tag">GPU</span>
+                        </div>
+                        <a href="documents/sorting.pdf" target="_blank" class="project-link">View PDF →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="reveal">
+            <h2>Let's Connect</h2>
+            <p class="intro-text" style="max-width:600px;">
+                Open to XR / game dev collaborations, freelance photography, hardware projects or just interesting conversations.
+            </p>
+            <div style="text-align:left; margin:40px 0;">
+                <a href="mailto:contact@cinemmer.com" class="btn btn-primary" style="font-size:1.1rem; padding:16px 40px;">
+                    Say Hello →
+                </a>
+            </div>
+            <p style="color:var(--text-muted);">
+                Vienna, Austria • 2026
+            </p>
+        </section>
+
+        <footer>
+            <p>© 2026 Cinemmer</p>
+            <div class="social-links">
+                <a href="https://github.com/fnburger/" target="_blank">GitHub</a>
+                <a href="https://www.instagram.com/cinemmer/" target="_blank">Instagram</a>
+                <a href="https://www.youtube.com/@cinemmer" target="_blank">YouTube</a>
+            </div>
+        </footer>
+
+    </div>
+
+    <div id="lightbox" onclick="closeLightbox()">
+        <span class="close" onclick="closeLightbox()">&times;</span>
+        <img id="lightbox-img" src="" alt="Enlarged view">
+    </div>
+
+    <script>
+        // --- Lightbox Logic ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.style.display = 'flex';
+            setTimeout(() => lightbox.classList.add('active'), 10); 
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox(e) {
+            if (e && e.target === lightboxImg) return; 
+            lightbox.classList.remove('active');
+            setTimeout(() => {
+                lightbox.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
+        });
+
+        lightboxImg.onclick = e => e.stopPropagation();
+
+        // --- Scroll Reveal Animation Logic ---
+        const revealElements = document.querySelectorAll('.reveal');
+        
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+        
+        // Trigger initial reveal on load
+        setTimeout(() => document.querySelector('.hero').classList.add('active'), 100);
+
+        // --- 3D Interactive Card Tilt ---
+        const projectCards = document.querySelectorAll('.project-card');
+
+        projectCards.forEach(card => {
+            // Only apply the effect on devices with a mouse (prevents mobile touch bugs)
+            if (window.matchMedia("(hover: hover)").matches) {
+                
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    
+                    // Find the mouse's exact position relative to the card
+                    const x = e.clientX - rect.left; 
+                    const y = e.clientY - rect.top;
+                    
+                    // Find the exact center of the card
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    // Calculate rotation (max 8 degrees). 
+                    // Negative/positive mapping ensures it tilts *toward* the mouse.
+                    const rotateX = ((y - centerY) / centerY) * -8; 
+                    const rotateY = ((x - centerX) / centerX) * 8;
+                    
+                    // Apply the 3D transform instantly without CSS transition lag
+                    card.style.transition = 'none';
+                    card.style.transform = `perspective(1000px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    // Smoothly snap back to flat when the mouse leaves
+                    card.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    card.style.transform = `perspective(1000px) scale(1) rotateX(0deg) rotateY(0deg)`;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

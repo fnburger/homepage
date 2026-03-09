@@ -1,835 +1,1111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Cinemmer – Computer Science MSc student at TU Wien | Unreal Engine XR developer, hardware enthusiast & photographer based in Vienna.">
-    <title>Cinemmer | XR Dev & Photography</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --bg: #0a0a0a;
-            --surface: #141414;
-            --surface-hover: #1c1c1c;
-            --text: #f0f0f0;
-            --text-muted: #a0a0a0;
-            --accent: #00e0ff;
-            --accent-dark: #00b0cc;
-            --accent-glow: rgba(0, 224, 255, 0.15);
-            --border: #222;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            width: 100%;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-            width: 100%;
-        }
-
-        /* Subtle background glow for depth */
-        .bg-glow {
-            position: absolute;
-            top: -20%;
-            left: -10%;
-            width: 50vw;
-            height: 50vw;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            z-index: -1;
-            filter: blur(80px);
-            opacity: 0.6;
-            animation: pulse 8s ease-in-out infinite alternate;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.5; }
-            100% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        .container {
-            max-width: 1180px;
-            margin: 0 auto;
-            padding: 0 24px;
-            position: relative;
-        }
-
-        header {
-            padding: 24px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(10, 10, 10, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.3s ease;
-        }
-
-        header.scrolled {
-            border-bottom: 1px solid var(--border);
-            padding: 16px 0;
-        }
-
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .logo span { color: var(--accent); }
-        .logo:hover { color: var(--accent); }
-
-        nav ul {
-            display: flex;
-            gap: 32px;
-            list-style: none;
-        }
-
-        nav a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: color 0.25s ease;
-        }
-
-        nav a:hover { color: var(--accent); }
-
-        /* Hero */
-        /* --- Hero Video Background --- */
-        .hero {
-            /* Existing hero styles but ensuring we have relative positioning */
-            padding: 120px 0 160px;
-            position: relative;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            min-height: 85vh; /* Gives the video room to breathe */
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2; /* Keeps text safely above the video */
-            width: 100%;
-        }
-
-        .hero-video-wrapper {
-            position: absolute;
-            top: 50%; 
-            right: -2%; /* Let it bleed just slightly off the right edge */
-            transform: translateY(-50%);
-            
-            /* The Ultrawide Fix */
-            width: 90%; /* Stretch it much further across the screen */
-            max-width: 1200px; 
-            aspect-ratio: 21 / 9; /* Forces the container to perfectly match your video file */
-            
-            z-index: 0;
-            pointer-events: none;
-            border-radius: 24px;
-            
-            /* Adjusted Mask: Keeps the left 15% fully invisible so text stays perfectly readable */
-            -webkit-mask-image: 
-                linear-gradient(to right, transparent 0%, transparent 15%, black 45%, black 95%, transparent 100%),
-                linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
-            -webkit-mask-composite: source-in;
-            
-            mask-image: 
-                linear-gradient(to right, transparent 0%, transparent 5%, black 45%, black 99%, transparent 100%),
-                linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
-            mask-composite: intersect;
-        }
-
-        .hero-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* With the aspect-ratio set, this will no longer crop the sides! */
-            opacity: 0.8; 
-        }
-
-        /* Mobile Adjustment for the Video */
-       @media (max-width: 768px) {
-            .hero-video-wrapper {
-                top: 0;
-                right: 0;
-                transform: none; 
-                width: 100%; 
-                height: 100%; 
-                aspect-ratio: auto; /* Removes the 21:9 lock on mobile */
-                max-width: none; 
-                border-radius: 0; 
-                
-                -webkit-mask-image: 
-                    linear-gradient(to bottom, transparent 5%, black 50%, black 95%, transparent 100%),
-                    linear-gradient(to right, transparent 5%, black 15%, black 85%, transparent 95%);
-                -webkit-mask-composite: source-in;
-                
-                mask-image: 
-                    linear-gradient(to bottom, transparent 5%, black 50%, black 95%, transparent 100%),
-                    linear-gradient(to right, transparent 5%, black 15%, black 85%, transparent 95%);
-                mask-composite: intersect;
-                
-                opacity: 0.4;
-            }
-        }
-
-        .hero .eyebrow {
-            font-family: 'Space Mono', monospace;
-            color: var(--accent);
-            font-size: 1.1rem;
-            letter-spacing: 1.5px;
-            margin-bottom: 20px;
-            display: inline-block;
-            background: rgba(0,224,255,0.1);
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-
-        .hero h1 {
-            font-size: clamp(3rem, 6vw, 4.8rem);
-            font-weight: 700;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            letter-spacing: -1px;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 640px;
-            margin-bottom: 48px;
-        }
-
-        .cta-group {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 28px;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            /* 1. Translucent Tint & Blur */
-            background: linear-gradient(180deg, rgba(0, 224, 255, 0.15) 0%, rgba(0, 224, 255, 0.05) 100%);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            
-            /* 2. Crisp Text & Structural Styling */
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-            position: relative;
-            overflow: hidden;
-            
-            /* 3. The Glass Specular Highlights */
-            border: 1px solid rgba(0, 224, 255, 0.3);
-            border-top: 1px solid rgba(255, 255, 255, 0.4); /* Sharp top reflection */
-            box-shadow: 
-                inset 0 1px 0 rgba(255, 255, 255, 0.1), /* Inner top glow */
-                0 8px 24px rgba(0, 224, 255, 0.15); /* Soft ambient cast shadow */
-        }
-
-        /* The Liquid Light Beam */
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0; 
-            left: -100%;
-            width: 50%; 
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-            transform: skewX(-25deg);
-            transition: left 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .btn-primary:hover {
-            /* Brighten the glass and increase the lift/glow */
-            background: linear-gradient(180deg, rgba(0, 224, 255, 0.25) 0%, rgba(0, 224, 255, 0.1) 100%);
-            box-shadow: 
-                inset 0 1px 0 rgba(255, 255, 255, 0.2), 
-                0 12px 32px rgba(0, 224, 255, 0.3);
-            border-color: rgba(0, 224, 255, 0.5);
-            border-top-color: rgba(255, 255, 255, 0.6);
-            transform: translateY(-2px);
-        }
-
-        .btn-primary:hover::before {
-            /* Fire the light beam across the glass */
-            left: 200%; 
-        }
-
-        .btn-outline {
-            border: 1px solid var(--border);
-            color: var(--text);
-            background: transparent;
-        }
-
-        .btn-outline:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        /* Sections & Reveal Animation */
-        section {
-            padding: 80px 0;
-            border-top: 1px solid var(--border);
-        }
-
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        h2 {
-            font-size: 2.5rem;
-            margin-bottom: 16px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .intro-text {
-            font-size: 1.15rem;
-            color: var(--text-muted);
-            max-width: 720px;
-            margin-bottom: 48px;
-        }
-
-        /* Photo Grid */
-        .photo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .photo-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            aspect-ratio: 4 / 5;
-            cursor: pointer;
-            background: var(--surface);
-            /* Add transitions for the new glow and a slight lift */
-            transition: box-shadow 0.4s ease, transform 0.4s ease;
-            border: 1px solid var(--border);
-        }
-
-        .photo-item:hover {
-            /* Elegant mixed glow: dark physical shadow + soft cyan backlight */
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 224, 255, 0.35);
-            transform: translateY(-4px); /* Gentle lift off the page */
-        }
-
-        .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .photo-item:hover img { 
-            transform: scale(1.05); /* Keeps your zoom effect! */
-        }
-        
-
-        /* Projects */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 32px;
-        }
-
-        @property --border-angle {
-            syntax: "<angle>";
-            inherits: true;
-            initial-value: 0deg;
-        }
-
-        @keyframes border-spin {
-            to { --border-angle: 360deg; }
-        }
-
-        .project-card {
-            border-radius: 16px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            
-            /* 3D setup */
-            transform-style: preserve-3d;
-            will-change: transform;
-            transition: box-shadow 0.4s ease;
-            
-            /* The Magic Border Setup */
-            border: 1px solid transparent;
-            background: 
-                linear-gradient(var(--surface), var(--surface)) padding-box,
-                var(--border) border-box; 
-        }
-
-        .project-card:hover {
-            /* Add the physical shadow + a subtle cyan glow around the card */
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 25px rgba(0, 224, 255, 0.4);
-            
-            /* The Animated Border Gradient */
-            background: 
-                linear-gradient(var(--surface), var(--surface)) padding-box,
-                conic-gradient(
-                    from var(--border-angle), 
-                    var(--border) 10%, 
-                    var(--accent) 45%, 
-                    #a200ff 50%, /* Cool purple peak in the middle of the cyan */
-                    var(--accent) 55%, 
-                    var(--border) 90%
-                ) border-box;
-            
-            /* Spin the gradient */
-            animation: border-spin 5s linear infinite;
-        }
-
-        .project-thumb {
-            width: 100%;
-            height: 220px; /* Locks the height */
-            flex-shrink: 0; /* Prevents the text from squishing the image */
-            object-fit: cover; /* Zooms/crops the image to fill the space perfectly */
-            display: block; /* Removes weird invisible spacing below images */
-            border-bottom: 1px solid var(--border);
-            background: #111; /* Fallback color while the image loads */
-        }
-
-        .project-content {
-            padding: 28px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .project-card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 12px;
-        }
-
-        .project-card p {
-            color: var(--text-muted);
-            font-size: 0.98rem;
-            margin-bottom: 24px;
-            flex-grow: 1;
-        }
-
-        .project-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 24px;
-        }
-
-        .tag {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--accent);
-            background: rgba(0,224,255,0.08);
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-
-        .project-link {
-            color: var(--text);
-            text-decoration: none;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: color 0.2s ease;
-            margin-top: auto;
-        }
-
-        .project-link:hover { color: var(--accent); }
-
-        /* Lightbox */
-        #lightbox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.98);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        #lightbox.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        #lightbox img {
-            max-width: 90%;
-            max-height: 90vh;
-            border-radius: 4px;
-            transform: scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        #lightbox.active img { transform: scale(1); }
-
-        .close {
-            position: absolute;
-            top: 24px;
-            right: 32px;
-            color: white;
-            font-size: 40px;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-            font-weight: 300;
-        }
-
-        .close:hover { opacity: 1; }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 60px 0;
-            color: var(--text-muted);
-            border-top: 1px solid var(--border);
-            font-size: 0.9rem;
-        }
-
-        .social-links {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 24px;
-        }
-
-        .social-links a {
-            color: var(--text);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .social-links a:hover { color: var(--accent); }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero { padding: 80px 0 100px; text-align: center; }
-            .bg-glow { left: 0; width: 100%; height: 100vw; }
-            .hero p { margin: 0 auto 32px; }
-            .cta-group { justify-content: center; }
-            nav { flex-direction: column; gap: 20px; }
-            h2 { font-size: 2rem; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cinemmer — XR Developer & Creative Technologist</title>
+  <meta name="description" content="XR Developer & Creative Technologist. CS MSc @ TU Wien. Building immersive experiences in Unreal Engine 5, hardware installations, and capturing light through photography." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0b;
+      --surface: #111114;
+      --surface-2: #1a1a1f;
+      --border: rgba(255,255,255,0.07);
+      --amber: #f0a500;
+      --amber-dim: rgba(240,165,0,0.12);
+      --amber-glow: rgba(240,165,0,0.04);
+      --text: #e8e6e0;
+      --text-muted: #7a7870;
+      --text-dim: #4a4845;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+      --font-body: 'DM Sans', sans-serif;
+      --radius: 4px;
+      --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NOISE OVERLAY ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.6;
+    }
+
+    /* ─── AMBIENT GLOW ─── */
+    .ambient {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ambient-1 {
+      width: 600px; height: 400px;
+      top: -100px; left: -100px;
+      background: radial-gradient(ellipse, rgba(240,165,0,0.06) 0%, transparent 70%);
+    }
+    .ambient-2 {
+      width: 500px; height: 500px;
+      bottom: 20vh; right: -150px;
+      background: radial-gradient(ellipse, rgba(100,120,200,0.04) 0%, transparent 70%);
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(10,10,11,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--amber);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+      padding-top: 5px;
+    }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cv {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--amber) !important;
+      border: 1px solid rgba(240,165,0,0.35);
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      transition: background var(--transition), color var(--transition) !important;
+    }
+    .nav-cv:hover { background: var(--amber-dim) !important; color: var(--amber) !important; }
+
+    /* ─── HERO ─── */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 80px 48px 80px;
+      overflow: hidden;
+    }
+
+    .hero-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--amber);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+      opacity: 0; animation: fadeUp 0.7s 0.2s forwards;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 32px; height: 1px;
+      background: var(--amber);
+    }
+
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 8vw, 7.5rem);
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      margin-bottom: 36px;
+      max-width: 900px;
+      opacity: 0; animation: fadeUp 0.8s 0.35s forwards;
+    }
+    .hero-headline em {
+      font-style: normal;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,0.25);
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      opacity: 0; animation: fadeUp 0.8s 0.5s forwards;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 400; }
+
+    .hero-actions {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      opacity: 0; animation: fadeUp 0.8s 0.65s forwards;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 12px 22px;
+      border-radius: var(--radius);
+      transition: all var(--transition);
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--amber);
+      color: #000;
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: #f5b420; transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); }
+
+    .hero-scroll-hint {
+      position: absolute; bottom: 32px; right: 48px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0; animation: fadeUp 1s 1s forwards;
+    }
+    .hero-scroll-hint::after {
+      content: '';
+      display: block;
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--text-dim), transparent);
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { position: relative; z-index: 1; }
+
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 48px;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--amber);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 48px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::before {
+      content: attr(data-num);
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      max-width: 60px;
+    }
+
+    /* ─── ABOUT ─── */
+    #about { border-top: 1px solid var(--border); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    .about-text h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .about-text p {
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      font-size: 0.97rem;
+      line-height: 1.75;
+    }
+    .about-text p:last-of-type { margin-bottom: 0; }
+
+    .about-sidebar { display: flex; flex-direction: column; gap: 32px; }
+
+    .fact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 24px;
+    }
+    .fact-card-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .fact-card-value {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ─── SKILLS ─── */
+    #skills { border-top: 1px solid var(--border); }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .skill-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 24px;
+      transition: border-color var(--transition);
+    }
+    .skill-group:hover { border-color: rgba(240,165,0,0.25); }
+
+    .skill-group-title {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--amber);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .skill-tags {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+
+    .skill-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 3px 9px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+
+    /* ─── PROJECTS ─── */
+    #projects { border-top: 1px solid var(--border); }
+
+    .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    }
+
+    .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    }
+    .project-card:hover { border-color: rgba(255,255,255,0.14); background: var(--surface-2); }
+
+    .project-img-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--surface-2);
+    flex-shrink: 0;
+    }
+    .project-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(25%) brightness(0.9);
+    transition: filter 0.4s ease, transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .project-card:hover .project-img-wrap img {
+    filter: grayscale(0%) brightness(1);
+    transform: scale(1.04);
+    }
+
+    .project-info {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    }
+
+    .project-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    }
+
+    .project-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    }
+
+    .project-date {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+    }
+
+    .project-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    flex: 1;
+    }
+
+    .project-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+    }
+
+    .stack-tag {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 2px;
+    }
+
+    .project-footer {
+    padding: 10px 20px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    }
+
+    .project-link {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color var(--transition);
+    }
+    .project-link:hover { color: var(--amber); }
+    .project-link.no-link { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+    /* ─── RESPONSIVE – projects ─── */
+    @media (max-width: 900px) {
+    .projects-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+    .projects-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── PHOTOGRAPHY ─── */
+    #photography { border-top: 1px solid var(--border); }
+
+    .photo-intro {
+      font-size: 0.97rem;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: 240px 240px;
+      gap: 8px;
+    }
+
+    .photo-grid .photo-item:first-child {
+      grid-column: 1 / 2;
+      grid-row: 1 / 3;
+    }
+    .photo-item {
+      overflow: hidden;
+      border-radius: 4px;
+      background: var(--surface);
+    }
+    .photo-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s;
+      filter: brightness(0.9);
+    }
+    .photo-item:hover img { transform: scale(1.04); filter: brightness(1); }
+
+    .photo-more {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 24px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color var(--transition);
+    }
+    .photo-more:hover { color: var(--amber); }
+
+    /* ─── LIGHTBOX ─── */
+    .lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1001;
+        background: rgba(0,0,0,0.92);
+        backdrop-filter: blur(8px);
+        align-items: center;
+        justify-content: center;
+        cursor: zoom-out;
+    }
+    .lightbox.open {
+        display: flex;
+    }
+    .lightbox img {
+        max-width: 92vw;
+        max-height: 92vh;
+        object-fit: contain;
+        border-radius: 4px;
+        box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+        user-select: none;
+    }
+
+    /* ─── CONTACT ─── */
+    #contact { border-top: 1px solid var(--border); }
+
+    .contact-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .contact-left h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .contact-left p {
+      color: var(--text-muted);
+      font-size: 0.97rem;
+      line-height: 1.75;
+      margin-bottom: 32px;
+    }
+
+    .contact-links { display: flex; flex-direction: column; gap: 8px; }
+    .contact-link {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      transition: color var(--transition);
+    }
+    .contact-link:hover { color: var(--amber); }
+    .contact-link-icon {
+      width: 20px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    /* Contact form */
+    .contact-form { display: flex; flex-direction: column; gap: 14px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .field-input, .field-textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 14px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      width: 100%;
+      transition: border-color var(--transition);
+      outline: none;
+    }
+    .field-input:focus, .field-textarea:focus {
+      border-color: rgba(240,165,0,0.4);
+    }
+    .field-textarea { resize: vertical; min-height: 120px; }
+
+    .form-notice {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .footer-left {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+    .footer-left a { color: var(--text-dim); text-decoration: none; }
+
+    .footer-right {
+      display: flex; gap: 24px;
+    }
+    .footer-social {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      transition: color var(--transition);
+    }
+    .footer-social:hover { color: var(--text-muted); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .hero-scroll-hint { display: none; }  
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      #hero, .section-inner, footer { padding-left: 20px; padding-right: 20px; }
+      .about-grid, .contact-layout { grid-template-columns: 1fr; gap: 40px; }
+      .photo-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+      .photo-grid .photo-item:first-child { grid-column: auto; grid-row: auto; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <div class="bg-glow"></div>
 
-    <header id="header">
-        <div class="container">
-            <nav>
-                <a href="#" class="logo">&lt;Cinemmer<span>/</span>&gt;</a>
-                <ul>
-                    <li><a href="#photography">Photography</a></li>
-                    <li><a href="#projects">Projects</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a href="#" class="nav-logo"><img src="images/logo_transparent.png" width="125px"></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#photography">Photography</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <!-- <li><a href="/cv.pdf" target="_blank" class="nav-cv">↓ CV</a></li> -->
+  </ul>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section id="hero">
+  <div class="hero-tag">XR Developer & Creative Technologist</div>
+  <h1 class="hero-headline">
+    Building realities<br/>
+    <em>that don't exist</em><br/>
+    yet.
+  </h1>
+  <p class="hero-sub">
+    CS MSc student at <strong>TU Wien</strong>. I bridge the gap between
+    immersive experience design and low-level systems — from networked VR
+    worlds in Unreal Engine 5 to hardware installations with custom firmware.
+    Based in <strong>Vienna, Austria</strong>.
+  </p>
+  <div class="hero-actions">
+    <a href="#projects" class="btn btn-primary">View Projects</a>
+    <a href="#contact" class="btn btn-outline">Get In Touch</a>
+    <!-- <a href="/cv.pdf" target="_blank" class="btn btn-outline">↓ Download CV</a> -->
+  </div>
+  <div class="hero-scroll-hint">Scroll</div>
+</section>
+
+<!-- ─── ABOUT ─── -->
+<section id="about">
+  <div class="section-inner">
+    <div class="section-label" data-num="01">About</div>
+    <div class="about-grid reveal">
+      <div class="about-text">
+        <h2>Code meets craft meets camera.</h2>
+        <p>
+          I'm a Computer Science MSc student at TU Wien specialising in extended reality and interactive systems.
+          My work sits at the intersection of real-time graphics, embedded systems, and creative technology — 
+          I'm as comfortable writing full-stack web projects as I am wiring an Arduino to a vintage VFD display or craeting VR experiences in Unreal Engine.
+        </p>
+        <p>
+          Outside of code, I shoot street photography across Vienna and beyond — documenting the textures, 
+          light, and quiet moments that cities offer. That visual instinct feeds directly back into how I 
+          design immersive experiences.
+        </p>
+      </div>
+      <div class="about-sidebar">
+        <div class="fact-card">
+          <div class="fact-card-label">Education</div>
+          <div class="fact-card-value">MSc Computer Science<br/>TU Wien · 2025 – present</div>
         </div>
-    </header>
+        <div class="fact-card">
+          <div class="fact-card-label">Focus Areas</div>
+          <div class="fact-card-value">XR / Real-time Graphics<br/>Embedded Systems · IoT<br/>Web Design</div>
+        </div>
+        <div class="fact-card">
+          <div class="fact-card-label">Location</div>
+          <div class="fact-card-value">Vienna, Austria<br/></div>
+        </div>
+        <div class="fact-card" style="border-color: rgba(240,165,0,0.3); background: var(--amber-glow);">
+          <div class="fact-card-label" style="color: var(--amber);">Availability</div>
+          <div class="fact-card-value" style="font-size:0.92rem;">Open to opportunities<br/></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <div class="container">
-        <section class="hero reveal" id="about">
-            <!-- 
-            <div class="hero-video-wrapper">
-                <video autoplay loop muted playsinline class="hero-video">
-                    <source src="video/showreel.mp4" type="video/mp4">
-                </video>
+<!-- ─── SKILLS ─── -->
+<section id="skills">
+  <div class="section-inner">
+    <div class="section-label" data-num="02">Skills & Stack</div>
+    <div class="skills-grid reveal">
+      <div class="skill-group">
+        <div class="skill-group-title">XR & Game Dev</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Unreal Engine</span>
+          <span class="skill-tag">Multiplayer</span>
+          <span class="skill-tag">VR / XR</span>
+          <span class="skill-tag">Networking</span>
+          <span class="skill-tag">HMD</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Hardware & Embedded</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Arduino</span>
+          <span class="skill-tag">ESP32</span>
+          <span class="skill-tag">ROS2</span>
+          <span class="skill-tag">C / C++</span>
+          <span class="skill-tag">IoT</span>
+          <span class="skill-tag">Sensors & Actuators</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Languages</div>
+        <div class="skill-tags">
+          <span class="skill-tag">C++</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">GLSL</span>
+          <span class="skill-tag">LaTeX</span>
+          <span class="skill-tag">Java</span>
+          <span class="skill-tag">JavaScript</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROJECTS ─── -->
+<section id="projects">
+  <div class="section-inner">
+    <div class="section-label" data-num="03">Recent Projects</div>
+
+<div class="projects-grid reveal">
+
+  <a class="project-card" href="https://github.com/fnburger/MeltdownMayhem2" target="_blank">
+    <div class="project-img-wrap">
+      <img src="images/melt.png" alt="Meltdown Mayhem game screenshot" />
+    </div>
+    <div class="project-info">
+      <div class="project-meta">
+        <span class="project-title">Meltdown Mayhem</span>
+        <span class="project-date">2024</span>
+      </div>
+      <p class="project-desc">Splitscreen 2-player racing platformer with power-ups. The core challenge was balancing graphical fidelity and performance across split-screen viewports without frame-rate degradation. Built in UE5 over 4 weeks.</p>
+      <div class="project-stack">
+        <span class="stack-tag">UE5</span><span class="stack-tag">Blueprints</span><span class="stack-tag">Multiplayer</span><span class="stack-tag">Multimedia</span>
+      </div>
+    </div>
+    <div class="project-footer">
+      <span class="project-link">GitHub →</span>
+    </div>
+  </a>
+
+  <div class="project-card" style="cursor:default;">
+    <div class="project-img-wrap">
+      <img src="images/escape.png" alt="VR Escape Room screenshot" />
+    </div>
+    <div class="project-info">
+      <div class="project-meta">
+        <span class="project-title">VR Escape Room</span>
+        <span class="project-date">2025</span>
+      </div>
+      <p class="project-desc">Two-player networked VR puzzle experience with motion controllers. Implemented replicated interaction systems so that both players see each other's hands and object states in sync — a non-trivial VR networking problem. Built in UE5.</p>
+      <div class="project-stack">
+        <span class="stack-tag">UE5</span><span class="stack-tag">VR</span><span class="stack-tag">Networking</span><span class="stack-tag">Blueprints</span>
+      </div>
+    </div>
+    <div class="project-footer">
+      <span class="project-link no-link">Repo soon</span>
+    </div>
+  </div>
+
+  <a class="project-card" href="https://github.com/fnburger/dry_shower" target="_blank">
+    <div class="project-img-wrap">
+      <img src="images/shower.jpeg" alt="Dry Shower installation" />
+    </div>
+    <div class="project-info">
+      <div class="project-meta">
+        <span class="project-title">Dry Shower</span>
+        <span class="project-date">2025</span>
+      </div>
+      <p class="project-desc">Exhibition installation using real-time visual feedback to make water consumption tangible. A custom ESP32 firmware simulates rainfall and drives an LED display, exhibited at TU Wien. Received two internal awards.</p>
+      <div class="project-stack">
+        <span class="stack-tag">C++</span><span class="stack-tag">ESP32</span><span class="stack-tag">Interactive Art</span><span class="stack-tag">Sensors</span>
+      </div>
+    </div>
+    <div class="project-footer">
+      <span class="project-link">GitHub →</span>
+    </div>
+  </a>
+
+  <a class="project-card" href="https://github.com/fnburger/ros2_arduino" target="_blank">
+    <div class="project-img-wrap">
+      <img src="images/smile.jpeg" alt="Smile Detector" />
+    </div>
+    <div class="project-info">
+      <div class="project-meta">
+        <span class="project-title">Smile Detector</span>
+        <span class="project-date">2025</span>
+      </div>
+      <p class="project-desc">Real-time face & smile detection pipeline using OpenCV, publishing detection events over ROS2 topics to an Arduino which drives LEDs. Demonstrates full-stack integration from computer vision to physical output.</p>
+      <div class="project-stack">
+        <span class="stack-tag">Python</span><span class="stack-tag">OpenCV</span><span class="stack-tag">ROS2</span><span class="stack-tag">Arduino</span>
+      </div>
+    </div>
+    <div class="project-footer">
+      <span class="project-link">GitHub →</span>
+    </div>
+  </a>
+
+  <div class="project-card" style="cursor:default;">
+    <div class="project-img-wrap">
+      <img src="images/wetter.jpeg" alt="Wetterbox" />
+    </div>
+    <div class="project-info">
+      <div class="project-meta">
+        <span class="project-title">Wetterbox</span>
+        <span class="project-date">2024</span>
+      </div>
+      <p class="project-desc">Environmental monitoring station displaying air quality, temperature, humidity, and pressure on repurposed vintage VFD tubes. The challenge was driving non-standard VFD segments via shift registers within the Arduino's timing constraints.</p>
+      <div class="project-stack">
+        <span class="stack-tag">C++</span><span class="stack-tag">Arduino</span><span class="stack-tag">3D Print</span><span class="stack-tag">VFD Displays</span>
+      </div>
+    </div>
+    <div class="project-footer">
+      <span class="project-link no-link">Repo soon</span>
+    </div>
+  </div>
+
+  <a class="project-card" href="documents/sorting.pdf" target="_blank">
+    <div class="project-img-wrap">
+      <img src="images/sorting.png" alt="GPU Sorting research paper" />
+    </div>
+    <div class="project-info">
+      <div class="project-meta">
+        <span class="project-title">GPU Sorting — Research</span>
+        <span class="project-date">2024</span>
+      </div>
+      <p class="project-desc">Performance analysis comparing GPU sorting algorithms (Radix Sort, Bitonic Sort, QuickSort variants) across dataset sizes and memory layouts. Identified optimal algorithm selection thresholds based on empirical benchmarks.</p>
+      <div class="project-stack">
+        <span class="stack-tag">GPU</span><span class="stack-tag">LaTeX</span><span class="stack-tag">Research</span>
+      </div>
+    </div>
+    <div class="project-footer">
+      <span class="project-link">View PDF →</span>
+    </div>
+  </a>
+
+</div>
+  </div>
+</section>
+
+<!-- ─── PHOTOGRAPHY ─── -->
+<section id="photography">
+  <div class="section-inner">
+    <div class="section-label" data-num="04">Photography</div>
+    <p class="photo-intro reveal">
+      Street photography across Vienna, Austrian landscapes, and travels. Shot on Sony a6300. 
+      The same eye for composition and light that informs how I design immersive spaces.
+    </p>
+    <div class="photo-grid reveal">
+      <div class="photo-item"><img src="images/green.jpg" alt="Urban green, Vienna" loading="lazy" /></div>
+      <div class="photo-item"><img src="images/ubahn.jpg" alt="Vienna U-Bahn" loading="lazy" /></div>
+      <div class="photo-item"><img src="images/sunrise.jpg" alt="Morning light" loading="lazy" /></div>
+      <div class="photo-item"><img src="images/urban.jpg" alt="Vienna street scene" loading="lazy" /></div>
+      <div class="photo-item"><img src="images/budapest.jpg" alt="Budapest" loading="lazy" /></div>
+    </div>
+    <a href="https://www.instagram.com/cinemmer/" target="_blank" class="photo-more reveal">
+      More on Instagram →
+    </a>
+  </div>
+</section>
+
+<!-- ─── CONTACT ─── -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="section-label" data-num="05">Contact</div>
+    <div class="contact-layout reveal">
+      <div class="contact-left">
+        <h2>Let's build something worth showing.</h2>
+        <p>Open to XR / game dev roles, hardware installations, creative tech collaborations, and freelance photography commissions. If you have something interesting, I want to hear it.</p>
+        <div class="contact-links">
+          <a href="mailto:contact@cinemmer.com" class="contact-link">
+            <svg class="contact-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            contact@cinemmer.com
+          </a>
+          <a href="https://github.com/fnburger/" target="_blank" class="contact-link">
+            <svg class="contact-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+            github.com/fnburger
+          </a>
+          <a href="https://www.instagram.com/cinemmer/" target="_blank" class="contact-link">
+            <svg class="contact-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            @cinemmer
+          </a>
+        </div>
+      </div>
+
+      <form class="contact-form" 
+      action="https://api.web3forms.com/submit" 
+      method="POST"
+      id="contact-form">
+
+        <input type="hidden" name="access_key" value="62352455-7c03-41ac-8658-bf1e0043ef0d" />
+        <input type="hidden" name="subject" value="New message from cinemmer.com" />
+        <input type="hidden" name="from_name" value="Cinemmer Portfolio" />
+        <input type="hidden" name="redirect" value="https://cinemmer.com?sent=true" />
+        <!-- Honeypot spam filter -->
+        <input type="checkbox" name="botcheck" style="display:none" />
+
+        <div class="form-row">
+            <div class="field-group">
+            <label class="field-label" for="name">Name</label>
+            <input class="field-input" type="text" id="name" name="name" 
+                    placeholder="Jane Smith" required />
             </div>
-            -->
-            <div class="hero-content">
-                <span class="eyebrow">Hello there.</span>
-                <h1>Crafting mixed realities.<br>Documenting the real.</h1>
-                <p>Computer Science MSc @ TU Wien. I build XR experiences in Unreal Engine, tinker with hardware, and capture light & moments through photography.</p>
-                
-                <div class="cta-group">
-                    <a href="#photography" class="btn btn-primary">View Photography</a>
-                    <a href="#projects" class="btn btn-outline">Explore Projects</a>
-                    <a href="mailto:contact@cinemmer.com" class="btn btn-outline">Get in Touch</a>
-                </div>
+            <div class="field-group">
+            <label class="field-label" for="email">Email</label>
+            <input class="field-input" type="email" id="email" name="email" 
+                    placeholder="jane@example.com" required />
             </div>
-        </section>
+        </div>
 
-        <section id="photography" class="reveal">
-            <h2>Photography</h2>
-            <p class="intro-text">Recent captures from Vienna streets, Austrian landscapes, urban textures and spontaneous travels.</p>
-            
-            <div class="photo-grid">
-                <div class="photo-item"><img src="images/green.jpg" alt="Urban green" loading="lazy" onclick="openLightbox(this.src)"></div>
-                <div class="photo-item"><img src="images/ubahn.jpg" alt="Subway moment" loading="lazy" onclick="openLightbox(this.src)"></div>
-                <div class="photo-item"><img src="images/sunrise.jpg" alt="Morning light" loading="lazy" onclick="openLightbox(this.src)"></div>
-                <div class="photo-item"><img src="images/urban.jpg" alt="Street scene" loading="lazy" onclick="openLightbox(this.src)"></div>
-                <div class="photo-item"><img src="images/budapest.jpg" alt="Budapest view" loading="lazy" onclick="openLightbox(this.src)"></div>
-                <div class="photo-item"><img src="images/donau.jpg" alt="Danube shore" loading="lazy" onclick="openLightbox(this.src)"></div>
-            </div>
+        <div class="field-group">
+            <label class="field-label" for="subject">What's this about?</label>
+            <input class="field-input" type="text" id="subject" name="subject_line"
+                placeholder="XR collaboration · Freelance · Just saying hi" />
+        </div>
 
-            <p style="text-align:center; margin-top:48px;">
-                <a href="https://www.instagram.com/cinemmer/" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:500;">
-                    More on Instagram →
-                </a>
-            </p>
-        </section>
+        <div class="field-group">
+            <label class="field-label" for="message">Message</label>
+            <textarea class="field-textarea" id="message" name="message" 
+                    placeholder="Tell me about the project..." required></textarea>
+        </div>
 
-        <section id="projects" class="reveal">
-            <h2>Projects</h2>
-            <p class="intro-text">Recent work blending code, hardware, and immersive experiences.</p>
-
-            <div class="projects-grid">
-                <div class="project-card">
-                    <img src="images/escape.png" alt="VR Escape Room screenshot" class="project-thumb">
-                    <div class="project-content">
-                        <h3>VR Escape Room</h3>
-                        <p>Two-player networked VR puzzle experience with motion controllers. Built in Unreal Engine 5 with Blueprints.</p>
-                        <div class="project-tags">
-                            <span class="tag">UE5</span>
-                            <span class="tag">VR</span>
-                            <span class="tag">Networking</span>
-                        </div>
-                        <a href="#" target="_blank" class="project-link">View on GitHub →</a>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <img src="images/melt.png" alt="Meltdown Mayhem game screenshot" class="project-thumb">
-                    <div class="project-content">
-                        <h3>Meltdown Mayhem</h3>
-                        <p>Splitscreen 2-player racing platformer with power-ups and chaotic physics. Developed in Unreal Engine 5.</p>
-                        <div class="project-tags">
-                            <span class="tag">UE5</span>
-                            <span class="tag">Game</span>
-                            <span class="tag">Multiplayer</span>
-                        </div>
-                        <a href="https://github.com/fnburger/MeltdownMayhem2" target="_blank" class="project-link">View on GitHub →</a>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <img src="images/shower.jpeg" alt="Dry Shower poster" class="project-thumb">
-                    <div class="project-content">
-                        <h3>Dry Shower</h3>
-                        <p>Interactive exhibition piece demonstrating water-saving behavior through real-time feedback and visuals.</p>
-                        <div class="project-tags">
-                            <span class="tag">C++</span>
-                            <span class="tag">ESP32</span>
-                            <span class="tag">Interactive Art</span>
-                        </div>
-                        <a href="https://github.com/fnburger/dry_shower" target="_blank" class="project-link">View on GitHub →</a>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <img src="images/wetter.jpeg" alt="Wetterbox" class="project-thumb">
-                    <div class="project-content">
-                        <h3>Wetterbox</h3>
-                        <p>Environmental monitoring station displaying air quality, temp, humidity and pressure on vintage VFD tubes.</p>
-                        <div class="project-tags">
-                            <span class="tag">C++</span>
-                            <span class="tag">Arduino</span>
-                            <span class="tag">IoT</span>
-                        </div>
-                        <a href="#" target="_blank" class="project-link">View on GitHub →</a>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <img src="images/smile.jpeg" alt="Smile Detector" class="project-thumb">
-                    <div class="project-content">
-                        <h3>Smile Detector</h3>
-                        <p>Real-time face & smile detection using webcam, controlling LEDs via Arduino and ROS2.</p>
-                        <div class="project-tags">
-                            <span class="tag">Python</span>
-                            <span class="tag">ROS2</span>
-                            <span class="tag">Arduino</span>
-                        </div>
-                        <a href="https://github.com/fnburger/ros2_arduino" target="_blank" class="project-link">View on GitHub →</a>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <img src="images/sorting.png" alt="GPU Sorting paper" class="project-thumb">
-                    <div class="project-content">
-                        <h3>GPU Sorting Comparison</h3>
-                        <p>Research paper comparing GPU sorting algorithms (Radix, Bitonic, QuickSort variants) with performance analysis.</p>
-                        <div class="project-tags">
-                            <span class="tag">LaTeX</span>
-                            <span class="tag">Research</span>
-                            <span class="tag">GPU</span>
-                        </div>
-                        <a href="documents/sorting.pdf" target="_blank" class="project-link">View PDF →</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="contact" class="reveal">
-            <h2>Let's Connect</h2>
-            <p class="intro-text" style="max-width:600px;">
-                Open to XR / game dev collaborations, freelance photography, hardware projects or just interesting conversations.
-            </p>
-            <div style="text-align:left; margin:40px 0;">
-                <a href="mailto:contact@cinemmer.com" class="btn btn-primary" style="font-size:1.1rem; padding:16px 40px;">
-                    Say Hello →
-                </a>
-            </div>
-            <p style="color:var(--text-muted);">
-                Vienna, Austria • 2026
-            </p>
-        </section>
-
-        <footer>
-            <p>© 2026 Cinemmer</p>
-            <div class="social-links">
-                <a href="https://github.com/fnburger/" target="_blank">GitHub</a>
-                <a href="https://www.instagram.com/cinemmer/" target="_blank">Instagram</a>
-                <a href="https://www.youtube.com/@cinemmer" target="_blank">YouTube</a>
-            </div>
-        </footer>
+        <div>
+            <button type="submit" class="btn btn-primary">Send Message</button>
+        </div>
+        <p class="form-notice" id="form-status"></p>
+        </form>
 
     </div>
+  </div>
+</section>
 
-    <div id="lightbox" onclick="closeLightbox()">
-        <span class="close" onclick="closeLightbox()">&times;</span>
-        <img id="lightbox-img" src="" alt="Enlarged view">
-    </div>
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-left">
+    © 2026 Cinemmer · Vienna, Austria ·
+    <a href="mailto:contact@cinemmer.com">contact@cinemmer.com</a>
+  </div>
+  <div class="footer-right">
+    <a href="https://github.com/fnburger/" target="_blank" class="footer-social">GitHub</a>
+    <a href="https://www.instagram.com/cinemmer/" target="_blank" class="footer-social">Instagram</a>
+    <a href="https://www.youtube.com/@cinemmer" target="_blank" class="footer-social">YouTube</a>
+  </div>
+</footer>
 
-    <script>
-        // --- Lightbox Logic ---
-        const lightbox = document.getElementById('lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
+<div class="lightbox" id="lightbox">
+    <img id="lightbox-img" src="" alt="" />
+</div>
 
-        function openLightbox(src) {
-            lightboxImg.src = src;
-            lightbox.style.display = 'flex';
-            setTimeout(() => lightbox.classList.add('active'), 10); 
-            document.body.style.overflow = 'hidden';
-        }
+<script>
+  // ─── SCROLL REVEAL ───
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 60);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => observer.observe(el));
 
-        function closeLightbox(e) {
-            if (e && e.target === lightboxImg) return; 
-            lightbox.classList.remove('active');
-            setTimeout(() => {
-                lightbox.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }, 300);
-        }
+  // ─── CONTACT FORM ───
+  const form = document.getElementById('contact-form');
+  const status = document.getElementById('form-status');
 
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
-        });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
 
-        lightboxImg.onclick = e => e.stopPropagation();
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      body: new FormData(form)
+    });
 
-        // --- Scroll Reveal Animation Logic ---
-        const revealElements = document.querySelectorAll('.reveal');
-        
-        const revealObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.15 });
+    if (res.ok) {
+      status.textContent = '✓ Sent! I\'ll be in touch soon.';
+      form.reset();
+    } else {
+      status.textContent = 'Something went wrong — email me directly at contact@cinemmer.com';
+    }
 
-        revealElements.forEach(el => revealObserver.observe(el));
+    btn.textContent = 'Send Message';
+    btn.disabled = false;
+  });
 
-        const header = document.getElementById('header');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
-        
-        // Trigger initial reveal on load
-        setTimeout(() => document.querySelector('.hero').classList.add('active'), 100);
+    // ─── LIGHTBOX ───
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
 
-        // --- 3D Interactive Card Tilt ---
-        const projectCards = document.querySelectorAll('.project-card');
+    function openLightbox(src, alt) {
+    lightboxImg.src = src;
+    lightboxImg.alt = alt;
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    }
 
-        projectCards.forEach(card => {
-            // Only apply the effect on devices with a mouse (prevents mobile touch bugs)
-            if (window.matchMedia("(hover: hover)").matches) {
-                
-                card.addEventListener('mousemove', (e) => {
-                    const rect = card.getBoundingClientRect();
-                    
-                    // Find the mouse's exact position relative to the card
-                    const x = e.clientX - rect.left; 
-                    const y = e.clientY - rect.top;
-                    
-                    // Find the exact center of the card
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-                    
-                    // Calculate rotation (max 8 degrees). 
-                    // Negative/positive mapping ensures it tilts *toward* the mouse.
-                    const rotateX = ((y - centerY) / centerY) * -8; 
-                    const rotateY = ((x - centerX) / centerX) * 8;
-                    
-                    // Apply the 3D transform instantly without CSS transition lag
-                    card.style.transition = 'none';
-                    card.style.transform = `perspective(1000px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                });
+    function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    }
 
-                card.addEventListener('mouseleave', () => {
-                    // Smoothly snap back to flat when the mouse leaves
-                    card.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                    card.style.transform = `perspective(1000px) scale(1) rotateX(0deg) rotateY(0deg)`;
-                });
-            }
-        });
-    </script>
+    // Single top-level listener — nothing can swallow this
+    document.addEventListener('click', (e) => {
+    // Clicked inside a photo item → open
+    const item = e.target.closest('.photo-item');
+    if (item) {
+        const img = item.querySelector('img');
+        openLightbox(img.src, img.alt);
+        return;
+    }
+    // Clicked anywhere on lightbox → close
+    if (e.target.closest('#lightbox')) {
+        closeLightbox();
+    }
+    });
+
+    // Also close on Escape key
+    document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLightbox();
+    });
+</script>
 </body>
 </html>
