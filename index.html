@@ -202,7 +202,7 @@
     .btn-outline:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); }
 
     .hero-scroll-hint {
-      position: absolute; bottom: 32px; right: 48px;
+      position: absolute; bottom: 62px; right: 38px;
       font-family: var(--font-mono);
       font-size: 0.7rem;
       color: var(--text-dim);
@@ -217,6 +217,46 @@
       width: 1px; height: 40px;
       background: linear-gradient(to bottom, var(--text-dim), transparent);
     }
+
+  .hero-video-wrap {
+    position: absolute;
+    top: 0; right: 0;
+    width: 55%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-video-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    /* left fade: blends into bg */
+    background: linear-gradient(to right, var(--bg) 0%, transparent 40%),
+    /* top fade */
+                linear-gradient(to bottom, var(--bg) 0%, transparent 20%),
+    /* bottom fade */
+                linear-gradient(to top, var(--bg) 0%, transparent 30%);
+  }
+
+  .hero-video-wrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+    display: block;
+  }
+
+  .hero-tag, .hero-headline, .hero-sub, .hero-actions {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Hide on mobile — text needs full width */
+  @media (max-width: 768px) {
+    .hero-video-wrap { display: none; }
+  }
 
     /* ─── SECTION BASE ─── */
     section { position: relative; z-index: 1; }
@@ -697,6 +737,11 @@
 
 <!-- ─── HERO ─── -->
 <section id="hero">
+  <div class="hero-video-wrap">
+    <video autoplay muted loop playsinline>
+      <source src="video/showreel.mp4" type="video/mp4" />
+    </video>
+  </div>
   <div class="hero-tag">XR Developer & Creative Technologist</div>
   <h1 class="hero-headline">
     Building realities<br/>
@@ -950,7 +995,7 @@
     <div class="section-label" data-num="05">Contact</div>
     <div class="contact-layout reveal">
       <div class="contact-left">
-        <h2>Let's build something worth showing.</h2>
+        <h2>Let's build something ambitious.</h2>
         <p>Open to XR / game dev roles, hardware installations, creative tech collaborations, and freelance photography commissions. If you have something interesting, I want to hear it.</p>
         <div class="contact-links">
           <a href="mailto:contact@cinemmer.com" class="contact-link">
